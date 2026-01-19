@@ -70,11 +70,9 @@ func (service *PublicacionService) Crear(req Dtos.PublicacionRequest) (Dtos.Publ
 		CreadoEn:  time.Now(),
 	}, nil
 }
-func (service *PublicacionService) ListarPaginado(limit int64, offset int64) ([]Dtos.ListadoPaginacionResponse, error) {
+func (service *PublicacionService) ListarPaginado(limit int, offset int) ([]Dtos.ListadoPaginacionResponse, error) {
 
 	opts := options.Find()
-	opts.SetLimit(limit)
-	opts.SetSkip(offset)
 
 	cursor, err := service.collection.Find(context.Background(), bson.M{}, opts)
 	if err != nil {
