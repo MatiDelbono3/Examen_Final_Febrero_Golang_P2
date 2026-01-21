@@ -3,6 +3,7 @@ package handlers
 import (
 	"examen_final_febrero_golang_P2/Dtos"
 	Services "examen_final_febrero_golang_P2/Services"
+	"strconv"
 
 	"net/http"
 
@@ -36,8 +37,20 @@ func (handler *PublicacionHandler) Crear(c *gin.Context) {
 	c.JSON(http.StatusCreated, avion)
 }
 func (handlers *PublicacionHandler) ListarPaginado(c *gin.Context) {
+	limitStr := c.Query("limit")
+	offsetStr := c.Query("offset")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "limit inválido"})
+		return
+	}
 
-	resp, err := handlers.service.ListarPaginado()
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil || offset < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "offset inválido"})
+		return
+	}
+	resp, err := handlers.service.ListarPaginado(limit, offset)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
