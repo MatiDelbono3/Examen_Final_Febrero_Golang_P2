@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	database "examen_final_febrero_golang_P2/Database"
 	"examen_final_febrero_golang_P2/Dtos"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -73,6 +72,8 @@ func (service *PublicacionService) Crear(req Dtos.PublicacionRequest) (Dtos.Publ
 func (service *PublicacionService) ListarPaginado(limit int, offset int) ([]Dtos.ListadoPaginacionResponse, error) {
 
 	opts := options.Find()
+	opts.SetLimit(int64(limit))
+	opts.SetSkip(int64(offset))
 
 	cursor, err := service.collection.Find(context.Background(), bson.M{}, opts)
 	if err != nil {
@@ -115,7 +116,7 @@ func (service *PublicacionService) FiltrarPorCampoDinamico(campo string, valor s
 		return nil, errors.New("campo y valor son obligatorios")
 	}
 
-	collection := database.Database.Collection(service.collectionName)
+	collection := service.collection
 
 	filter := bson.M{
 		campo: valor,
@@ -140,10 +141,10 @@ func (service *PublicacionService) FiltrarPublicacionesActivas(estado string) ([
 		return nil, errors.New("El estado es obligatorio")
 	}
 
-	collection := database.Database.Collection(service.collectionName)
+	collection := service.collection
 
 	filter := bson.M{
-		estado: "activa",
+		estado: estado,
 	}
 
 	cursor, err := collection.Find(context.TODO(), filter)
@@ -160,11 +161,14 @@ func (service *PublicacionService) FiltrarPublicacionesActivas(estado string) ([
 	return resultado, nil
 }
 func (service *PublicacionService) BorrarPublicacion(id string) error {
-	_, err := primitive.ObjectIDFromHex(id)
+	ObjectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New("ID inválido")
 	}
 
-	err = service.BorrarPublicacion(id)
+	_, err = service.collection.DeleteOne(
+		context.Background(),
+		bson.M{"_id": ObjectID},
+	)
 	return err
 }
